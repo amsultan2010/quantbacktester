@@ -3,63 +3,111 @@
    ============================================================ */
 
 // ================================================================
-// HERO CANVAS — animated particle network
+// FULL-PAGE CANVAS — stock lines + particle network
 // ================================================================
-(function initHeroCanvas() {
+(function initBgCanvas() {
   const canvas = document.getElementById("hero-canvas");
-  const ctx = canvas.getContext("2d");
-  let particles = [];
-  let rafId;
+  const ctx    = canvas.getContext("2d");
+  let particles = [], stockLines = [], rafId;
 
+  // ── sizing ──────────────────────────────────────────────────
   function resize() {
-    canvas.width  = canvas.offsetWidth;
-    canvas.height = canvas.offsetHeight;
+    canvas.width  = window.innerWidth;
+    canvas.height = document.body.scrollHeight;
   }
 
+  // ── particles ───────────────────────────────────────────────
   function makeParticles() {
     particles = [];
-    const n = Math.max(30, Math.floor((canvas.width * canvas.height) / 14000));
+    const n = Math.max(60, Math.floor((canvas.width * canvas.height) / 9000));
     for (let i = 0; i < n; i++) {
+      const isRed = Math.random() < 0.35;
       particles.push({
         x:  Math.random() * canvas.width,
         y:  Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * 0.28,
-        vy: (Math.random() - 0.5) * 0.28,
-        r:  Math.random() * 1.8 + 0.6,
-        a:  Math.random() * 0.28 + 0.06,
+        vx: (Math.random() - 0.5) * 0.35,
+        vy: (Math.random() - 0.5) * 0.35,
+        r:  Math.random() * 2 + 0.8,
+        a:  Math.random() * 0.45 + 0.15,
+        red: isRed,
       });
     }
   }
 
+  // ── stock squiggle lines ─────────────────────────────────────
+  function makeStockLines() {
+    stockLines = [];
+    const count = Math.max(8, Math.floor(canvas.width / 180));
+    for (let i = 0; i < count; i++) {
+      const isRed = Math.random() < 0.4;
+      const pts = [];
+      const segs = 60 + Math.floor(Math.random() * 40);
+      let x = Math.random() * canvas.width;
+      let y = 0.05 * canvas.height + Math.random() * 0.9 * canvas.height;
+      for (let s = 0; s < segs; s++) {
+        pts.push({ x, y });
+        x += 14 + Math.random() * 10;
+        y += (Math.random() - 0.48) * 22;
+      }
+      stockLines.push({ pts, isRed, offset: Math.random() * segs, speed: 0.06 + Math.random() * 0.08 });
+    }
+  }
+
+  // ── draw ────────────────────────────────────────────────────
   function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    const LINK = 130;
 
+    // — stock lines —
+    stockLines.forEach(sl => {
+      sl.offset = (sl.offset + sl.speed) % sl.pts.length;
+      const color = sl.isRed ? "255,23,68" : "0,230,118";
+      const start = Math.floor(sl.offset);
+      const visible = 30;
+      ctx.beginPath();
+      for (let k = 0; k < visible; k++) {
+        const idx = (start + k) % sl.pts.length;
+        const pt  = sl.pts[idx];
+        const fade = k / visible;
+        if (k === 0) ctx.moveTo(pt.x, pt.y);
+        else         ctx.lineTo(pt.x, pt.y);
+      }
+      ctx.strokeStyle = `rgba(${color}, 0.28)`;
+      ctx.lineWidth   = 1.2;
+      ctx.stroke();
+
+      // leading dot
+      const lead = sl.pts[(start + visible - 1) % sl.pts.length];
+      ctx.beginPath();
+      ctx.arc(lead.x, lead.y, 2.2, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${color}, 0.7)`;
+      ctx.fill();
+    });
+
+    // — particle network —
+    const LINK = 150;
     for (let i = 0; i < particles.length; i++) {
       const p = particles[i];
+      const pc = p.red ? "255,23,68" : "0,230,118";
 
-      // connections
       for (let j = i + 1; j < particles.length; j++) {
-        const q = particles[j];
+        const q  = particles[j];
         const dx = p.x - q.x, dy = p.y - q.y;
         const d  = Math.sqrt(dx * dx + dy * dy);
         if (d < LINK) {
           ctx.beginPath();
           ctx.moveTo(p.x, p.y);
           ctx.lineTo(q.x, q.y);
-          ctx.strokeStyle = `rgba(0, 230, 118, ${0.12 * (1 - d / LINK)})`;
-          ctx.lineWidth = 0.6;
+          ctx.strokeStyle = `rgba(${pc}, ${0.18 * (1 - d / LINK)})`;
+          ctx.lineWidth   = 0.7;
           ctx.stroke();
         }
       }
 
-      // dot
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(0, 230, 118, ${p.a})`;
+      ctx.fillStyle = `rgba(${pc}, ${p.a})`;
       ctx.fill();
 
-      // move
       p.x += p.vx;
       p.y += p.vy;
       if (p.x < 0 || p.x > canvas.width)  p.vx *= -1;
@@ -69,20 +117,30 @@
     rafId = requestAnimationFrame(draw);
   }
 
+  // ── boot ────────────────────────────────────────────────────
   resize();
   makeParticles();
+  makeStockLines();
   draw();
 
+  // Resize on window resize + DOM height changes (results appear)
   let resizeTimer;
-  window.addEventListener("resize", () => {
+  function handleResize() {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(() => {
       cancelAnimationFrame(rafId);
       resize();
       makeParticles();
+      makeStockLines();
       draw();
-    }, 200);
-  });
+    }, 250);
+  }
+
+  window.addEventListener("resize", handleResize);
+
+  // Re-measure canvas height after results render
+  const bodyObserver = new ResizeObserver(handleResize);
+  bodyObserver.observe(document.body);
 })();
 
 
@@ -90,9 +148,9 @@
 // PLOTLY THEME
 // ================================================================
 const STRAT_COLOR  = "#00E676";
-const BENCH_COLOR  = "#FFC400";
-const STRAT_FILL   = "rgba(0, 230, 118, 0.07)";
-const BENCH_FILL   = "rgba(255, 196, 0, 0.07)";
+const BENCH_COLOR  = "#FF1744";
+const STRAT_FILL   = "rgba(0, 230, 118, 0.08)";
+const BENCH_FILL   = "rgba(255, 23, 68, 0.08)";
 
 const BASE_LAYOUT = {
   paper_bgcolor: "transparent",
@@ -290,7 +348,7 @@ function renderPriceChart(data) {
       x: data.dates, y: data.close,
       name: "Close Price",
       type: "scatter", mode: "lines",
-      line: { color: "#9C6240", width: 1.4, opacity: 0.75 },
+      line: { color: "rgba(200,200,200,0.25)", width: 1.2 },
     },
     {
       x: data.dates, y: data.sma_short,
@@ -365,7 +423,7 @@ function renderBarCharts(data) {
     text: ddVals.map(v => v.toFixed(2) + "%"),
     textposition: "inside",
     insidetextanchor: "middle",
-    textfont: { size: 15, color: "#031A0D", family: "IBM Plex Mono, monospace" },
+    textfont: { size: 15, color: "#FFFFFF", family: "IBM Plex Mono, monospace" },
     width: [0.4, 0.4],
     hovertemplate: "%{x}<br>%{y:.2f}%<extra></extra>",
   }], {
@@ -395,7 +453,7 @@ function renderBarCharts(data) {
     text: shVals.map(v => v.toFixed(2)),
     textposition: "inside",
     insidetextanchor: "middle",
-    textfont: { size: 15, color: "#031A0D", family: "IBM Plex Mono, monospace" },
+    textfont: { size: 15, color: "#FFFFFF", family: "IBM Plex Mono, monospace" },
     width: [0.4, 0.4],
     hovertemplate: "%{x}<br>Sharpe: %{y:.3f}<extra></extra>",
   }], {
