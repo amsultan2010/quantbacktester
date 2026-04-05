@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pip show:*)",
+      "Bash(ls /Users/a.m.sultan/Backtester/venv/lib/python*/site-packages/)",
+      "Bash(source /Users/a.m.sultan/Backtester/venv/bin/activate)",
+      "Bash(pip install:*)",
+      "Bash(source venv/bin/activate)",
+      "Bash(python -c \"from app import app; print\\(''App imports OK''\\)\")",
+      "Bash(curl -s http://localhost:5000/)",
+      "Bash(curl -s http://127.0.0.1:5000/)",
+      "Bash(curl -s --max-time 30 -X POST http://127.0.0.1:5000/api/backtest -H \"Content-Type: application/json\" -d '{\"\"\"\"ticker\"\"\"\":\"\"\"\"AAPL\"\"\"\",\"\"\"\"start_date\"\"\"\":\"\"\"\"2020-01-01\"\"\"\",\"\"\"\"end_date\"\"\"\":\"\"\"\"2023-01-01\"\"\"\",\"\"\"\"short_window\"\"\"\":20,\"\"\"\"long_window\"\"\"\":50,\"\"\"\"initial_capital\"\"\"\":10000}')"
+    ]
+  }
+}

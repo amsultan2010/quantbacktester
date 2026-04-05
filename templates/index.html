@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QuantBacktesterPy — SMA Strategy Analyzer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+
+  <!-- ===== HERO ===== -->
+  <header class="hero">
+    <canvas id="hero-canvas"></canvas>
+    <div class="hero-content">
+      <div class="hero-badge">Quantitative Finance</div>
+      <h1 class="hero-title"><span class="t-green">Quant</span><span class="t-red">Backtester</span><span class="t-white">Py</span></h1>
+      <p class="hero-subtitle">
+        Test how a Moving Average Crossover strategy compares to simply<br />
+        buying and holding — on any stock, any time period.
+      </p>
+      <div class="hero-chips">
+        <span class="chip">SMA Crossover Strategy</span>
+        <span class="chip-sep">vs</span>
+        <span class="chip chip-green">Buy &amp; Hold Benchmark</span>
+      </div>
+    </div>
+    <div class="hero-scroll-hint">
+      <span>Configure your backtest below</span>
+      <div class="scroll-arrow"></div>
+    </div>
+  </header>
+
+  <!-- ===== CONTROL PANEL ===== -->
+  <section class="control-section">
+    <div class="container">
+      <div class="control-card">
+        <div class="control-card-header">
+          <h2>Configure Backtest</h2>
+          <p>Choose your stock, date range, and moving average windows</p>
+        </div>
+
+        <div class="control-grid">
+          <div class="input-group span-2">
+            <label for="ticker">Stock Ticker</label>
+            <input type="text" id="ticker" placeholder="AAPL, TSLA, SPY, MSFT…" value="AAPL" autocomplete="off" spellcheck="false" />
+            <span class="input-hint">Any Yahoo Finance symbol</span>
+          </div>
+
+          <div class="input-group">
+            <label for="start-date">Start Date</label>
+            <input type="date" id="start-date" value="2015-01-01" />
+          </div>
+
+          <div class="input-group">
+            <label for="end-date">End Date</label>
+            <input type="date" id="end-date" value="2025-01-01" />
+          </div>
+
+          <div class="input-group">
+            <label for="initial-capital">Starting Capital</label>
+            <div class="input-affix-wrap">
+              <span class="input-prefix">$</span>
+              <input type="number" id="initial-capital" value="10000" min="100" step="100" />
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label for="short-window">Fast MA Window</label>
+            <div class="input-affix-wrap">
+              <input type="number" id="short-window" value="20" min="2" max="200" />
+              <span class="input-suffix">days</span>
+            </div>
+            <span class="input-hint">Shorter = more reactive</span>
+          </div>
+
+          <div class="input-group">
+            <label for="long-window">Slow MA Window</label>
+            <div class="input-affix-wrap">
+              <input type="number" id="long-window" value="50" min="5" max="500" />
+              <span class="input-suffix">days</span>
+            </div>
+            <span class="input-hint">Must be larger than Fast MA</span>
+          </div>
+        </div>
+
+        <div class="control-footer">
+          <p class="control-disclaimer">0.1% transaction cost applied per trade &middot; Look-ahead bias protected</p>
+          <button id="run-btn" class="btn-primary">
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+            <span>Run Backtest</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== LOADING OVERLAY ===== -->
+  <div id="loading-overlay" class="loading-overlay hidden">
+    <div class="loading-ring">
+      <div></div><div></div><div></div><div></div>
+    </div>
+    <p id="loading-text" class="loading-text">Running simulation…</p>
+  </div>
+
+  <!-- ===== ERROR BANNER ===== -->
+  <div id="error-banner" class="error-banner hidden">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18" style="flex-shrink:0">
+      <circle cx="12" cy="12" r="10"></circle>
+      <line x1="12" y1="8" x2="12" y2="12"></line>
+      <line x1="12" y1="16" x2="12.01" y2="16"></line>
+    </svg>
+    <span id="error-message"></span>
+    <button class="error-close" onclick="document.getElementById('error-banner').classList.add('hidden')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+  </div>
+
+  <!-- ===== RESULTS SECTION ===== -->
+  <section id="results-section" class="results-section hidden">
+    <div class="container">
+
+      <!-- Results header -->
+      <div class="results-header">
+        <div>
+          <h2 id="results-title" class="results-title">Results</h2>
+          <p id="results-subtitle" class="results-subtitle"></p>
+        </div>
+        <div class="legend">
+          <div class="legend-item">
+            <span class="legend-swatch swatch-strategy"></span>
+            <span id="strategy-label">SMA Strategy</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-swatch swatch-benchmark"></span>
+            <span>Buy &amp; Hold</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stat cards -->
+      <div class="stats-grid">
+        <div class="stat-card" id="sc-strategy">
+          <p class="stat-label">Strategy Final Value</p>
+          <p class="stat-value" id="stat-strategy-final">—</p>
+          <p class="stat-delta" id="stat-strategy-return">—</p>
+        </div>
+        <div class="stat-card" id="sc-bh">
+          <p class="stat-label">Buy &amp; Hold Final Value</p>
+          <p class="stat-value" id="stat-bh-final">—</p>
+          <p class="stat-delta" id="stat-bh-return">—</p>
+        </div>
+        <div class="stat-card stat-card-split" id="sc-dd">
+          <p class="stat-label">Max Drawdown</p>
+          <div class="stat-split-row">
+            <div>
+              <p class="stat-mini-label c-strategy">Strategy</p>
+              <p class="stat-value sm" id="stat-strategy-dd">—</p>
+            </div>
+            <div class="split-divider"></div>
+            <div>
+              <p class="stat-mini-label c-benchmark">Buy &amp; Hold</p>
+              <p class="stat-value sm" id="stat-bh-dd">—</p>
+            </div>
+          </div>
+        </div>
+        <div class="stat-card stat-card-split" id="sc-sharpe">
+          <p class="stat-label">Sharpe Ratio</p>
+          <div class="stat-split-row">
+            <div>
+              <p class="stat-mini-label c-strategy">Strategy</p>
+              <p class="stat-value sm" id="stat-strategy-sharpe">—</p>
+            </div>
+            <div class="split-divider"></div>
+            <div>
+              <p class="stat-mini-label c-benchmark">Buy &amp; Hold</p>
+              <p class="stat-value sm" id="stat-bh-sharpe">—</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Portfolio performance chart -->
+      <div class="chart-card chart-lg">
+        <div class="chart-header">
+          <div>
+            <h3>Portfolio Performance</h3>
+            <p class="chart-sub">Dollar value of $<span id="chart-capital">10,000</span> invested over time</p>
+          </div>
+        </div>
+        <div id="chart-portfolio" class="chart-area"></div>
+      </div>
+
+      <!-- Row: Price + SMAs  |  Drawdown -->
+      <div class="charts-row-2">
+        <div class="chart-card">
+          <div class="chart-header">
+            <h3>Price &amp; Moving Averages</h3>
+            <p class="chart-sub">Close price with crossover signals</p>
+          </div>
+          <div id="chart-price" class="chart-area"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-header">
+            <h3>Drawdown Over Time</h3>
+            <p class="chart-sub">How far each approach fell from its peak</p>
+          </div>
+          <div id="chart-drawdown" class="chart-area"></div>
+        </div>
+      </div>
+
+      <!-- Row: Max DD bar  |  Sharpe bar -->
+      <div class="charts-row-2">
+        <div class="chart-card">
+          <div class="chart-header">
+            <h3>Maximum Drawdown</h3>
+            <p class="chart-sub">Worst peak-to-trough loss — lower is better</p>
+          </div>
+          <div id="chart-dd-bar" style="height:280px;"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-header">
+            <h3>Sharpe Ratio</h3>
+            <p class="chart-sub">Risk-adjusted return — higher is better</p>
+          </div>
+          <div id="chart-sharpe-bar" style="height:280px;"></div>
+        </div>
+      </div>
+
+      <!-- Optimize CTA -->
+      <div class="optimize-banner">
+        <div class="optimize-text">
+          <h3>Parameter Optimization</h3>
+          <p>Scan every combination of Fast MA (10–55 days) and Slow MA (50–190 days) to find the highest Sharpe Ratio for this ticker and period.</p>
+        </div>
+        <button id="optimize-btn" class="btn-secondary">
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <span>Run Parameter Scan</span>
+        </button>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===== HEATMAP SECTION ===== -->
+  <section id="heatmap-section" class="heatmap-section hidden">
+    <div class="container">
+      <div class="chart-card chart-lg">
+        <div class="chart-header">
+          <div>
+            <h3>Sharpe Ratio Heatmap</h3>
+            <p class="chart-sub" id="heatmap-sub">All SMA window combinations — greener = higher Sharpe</p>
+          </div>
+        </div>
+        <div id="chart-heatmap" class="chart-area chart-area-heatmap"></div>
+      </div>
+      <div id="optimal-banner" class="optimal-banner hidden">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18" style="flex-shrink:0;color:var(--gold)">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+        </svg>
+        <span class="optimal-label">Best parameters found:</span>
+        <span id="optimal-text"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="footer">
+    <p>Built with Python, Flask &amp; Plotly &middot; Data from Yahoo Finance</p>
+    <p class="footer-built">Built by Abdullah Sultan</p>
+    <p class="footer-note">For educational purposes only &middot; Not financial advice</p>
+  </footer>
+
+  <script src="/static/script.js"></script>
+</body>
+</html>
