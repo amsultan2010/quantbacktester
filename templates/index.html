@@ -4,49 +4,148 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>QuantBacktesterPy — SMA Strategy Analyzer</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
   <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
 
-  <!-- Full-page background canvas -->
+  <!-- Animated background canvas -->
   <canvas id="hero-canvas"></canvas>
+
+  <!-- Grain texture overlay -->
+  <div class="grain" aria-hidden="true"></div>
+
+  <!-- ===== TICKER TAPE ===== -->
+  <div class="ticker-bar" aria-hidden="true">
+    <div class="ticker-track">
+      <span class="tick green">AAPL <strong>+1.24%</strong></span>
+      <span class="tick-sep">·</span>
+      <span class="tick red">TSLA <strong>−0.87%</strong></span>
+      <span class="tick-sep">·</span>
+      <span class="tick green">SPY <strong>+0.56%</strong></span>
+      <span class="tick-sep">·</span>
+      <span class="tick green">MSFT <strong>+2.11%</strong></span>
+      <span class="tick-sep">·</span>
+      <span class="tick red">AMZN <strong>−0.33%</strong></span>
+      <span class="tick-sep">·</span>
+      <span class="tick green">NVDA <strong>+3.44%</strong></span>
+      <span class="tick-sep">·</span>
+      <span class="tick red">META <strong>−1.02%</strong></span>
+      <span class="tick-sep">·</span>
+      <span class="tick green">GOOGL <strong>+0.78%</strong></span>
+      <span class="tick-sep">·</span>
+      <span class="tick red">NFLX <strong>−0.55%</strong></span>
+      <span class="tick-sep">·</span>
+      <span class="tick green">BRK.B <strong>+0.39%</strong></span>
+      <!-- duplicate for seamless loop -->
+      <span class="tick green">AAPL <strong>+1.24%</strong></span>
+      <span class="tick-sep">·</span>
+      <span class="tick red">TSLA <strong>−0.87%</strong></span>
+      <span class="tick-sep">·</span>
+      <span class="tick green">SPY <strong>+0.56%</strong></span>
+      <span class="tick-sep">·</span>
+      <span class="tick green">MSFT <strong>+2.11%</strong></span>
+      <span class="tick-sep">·</span>
+      <span class="tick red">AMZN <strong>−0.33%</strong></span>
+      <span class="tick-sep">·</span>
+      <span class="tick green">NVDA <strong>+3.44%</strong></span>
+      <span class="tick-sep">·</span>
+      <span class="tick red">META <strong>−1.02%</strong></span>
+      <span class="tick-sep">·</span>
+      <span class="tick green">GOOGL <strong>+0.78%</strong></span>
+      <span class="tick-sep">·</span>
+      <span class="tick red">NFLX <strong>−0.55%</strong></span>
+      <span class="tick-sep">·</span>
+      <span class="tick green">BRK.B <strong>+0.39%</strong></span>
+    </div>
+  </div>
 
   <!-- ===== HERO ===== -->
   <header class="hero">
     <div class="hero-content">
-      <div class="hero-badge">Quantitative Finance</div>
-      <h1 class="hero-title"><span class="t-green">Quant</span><span class="t-red">Backtester</span><span class="t-white">Py</span></h1>
+      <div class="hero-badge">
+        <span class="badge-pulse"></span>
+        <span>Quantitative Finance</span>
+      </div>
+
+      <h1 class="hero-title">
+        <span class="t-green">Quant</span><span class="t-red">Backtester</span><span class="t-white">Py</span>
+      </h1>
+
       <p class="hero-subtitle">
         Test how a Moving Average Crossover strategy compares to simply buying and holding — on any stock, any time period.
       </p>
+
       <div class="hero-chips">
-        <span class="chip chip-green">SMA Crossover Strategy</span>
+        <span class="chip chip-green"><span class="chip-dot"></span>SMA Crossover Strategy</span>
         <span class="chip-sep">vs</span>
-        <span class="chip chip-red">Buy &amp; Hold Benchmark</span>
+        <span class="chip chip-red"><span class="chip-dot"></span>Buy &amp; Hold Benchmark</span>
       </div>
+
+      <div class="hero-stats-row">
+        <div class="hero-stat">
+          <span class="hero-stat-val">10yr+</span>
+          <span class="hero-stat-lbl">Backtest Range</span>
+        </div>
+        <div class="hero-stat-divider"></div>
+        <div class="hero-stat">
+          <span class="hero-stat-val">150+</span>
+          <span class="hero-stat-lbl">Param Combos</span>
+        </div>
+        <div class="hero-stat-divider"></div>
+        <div class="hero-stat">
+          <span class="hero-stat-val">0.1%</span>
+          <span class="hero-stat-lbl">Tx Cost Applied</span>
+        </div>
+      </div>
+
+      <a href="#control-anchor" class="hero-cta">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polygon points="5 3 19 12 5 21 5 3"></polygon>
+        </svg>
+        Start Backtesting
+      </a>
     </div>
+
     <div class="hero-scroll-hint">
-      <span>Configure your backtest below</span>
+      <span>Configure below</span>
       <div class="scroll-arrow"></div>
     </div>
   </header>
 
   <!-- ===== CONTROL PANEL ===== -->
   <section class="control-section">
+    <div id="control-anchor" class="control-anchor"></div>
     <div class="container">
-      <div class="control-card">
+
+      <div class="section-label">
+        <span class="section-num">01</span>
+        <span>Configure Backtest</span>
+      </div>
+
+      <div class="control-card glass">
         <div class="control-card-header">
-          <h2>Configure Backtest</h2>
-          <p>Choose your stock, date range, and moving average windows</p>
+          <div>
+            <h2>Backtest Parameters</h2>
+            <p>Choose your stock, date range, and moving average windows</p>
+          </div>
+          <div class="control-card-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+            </svg>
+          </div>
         </div>
 
         <div class="control-grid">
           <div class="input-group span-2">
             <label for="ticker">Stock Ticker</label>
-            <input type="text" id="ticker" placeholder="AAPL, TSLA, SPY, MSFT…" value="AAPL" autocomplete="off" spellcheck="false" />
+            <div class="input-row">
+              <input type="text" id="ticker" placeholder="AAPL, TSLA, SPY, MSFT…" value="AAPL" autocomplete="off" spellcheck="false" />
+              <span class="input-badge">Yahoo Finance</span>
+            </div>
             <span class="input-hint">Any Yahoo Finance symbol</span>
           </div>
 
@@ -83,12 +182,26 @@
               <input type="number" id="long-window" value="50" min="5" max="500" />
               <span class="input-suffix">days</span>
             </div>
-            <span class="input-hint">Must be larger than Fast MA</span>
+            <span class="input-hint">Must be &gt; Fast MA</span>
           </div>
         </div>
 
         <div class="control-footer">
-          <p class="control-disclaimer">0.1% transaction cost applied per trade &middot; Look-ahead bias protected</p>
+          <div class="control-meta">
+            <span class="meta-tag">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              </svg>
+              0.1% tx cost
+            </span>
+            <span class="meta-tag">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              Look-ahead protected
+            </span>
+          </div>
           <button id="run-btn" class="btn-primary">
             <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <polygon points="5 3 19 12 5 21 5 3"></polygon>
@@ -102,10 +215,23 @@
 
   <!-- ===== LOADING OVERLAY ===== -->
   <div id="loading-overlay" class="loading-overlay hidden">
-    <div class="loading-ring">
-      <div></div><div></div><div></div><div></div>
+    <div class="loading-card">
+      <div class="loading-spinner">
+        <svg viewBox="0 0 64 64" fill="none">
+          <circle cx="32" cy="32" r="26" stroke="#1e1e1e" stroke-width="4"/>
+          <circle cx="32" cy="32" r="26" stroke="url(#spinGrad)" stroke-width="4"
+            stroke-dasharray="120 43" stroke-linecap="round"/>
+          <defs>
+            <linearGradient id="spinGrad" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#00E676"/>
+              <stop offset="1" stop-color="#FF1744"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <p id="loading-text" class="loading-text">Running simulation…</p>
+      <div class="loading-dots"><span></span><span></span><span></span></div>
     </div>
-    <p id="loading-text" class="loading-text">Running simulation…</p>
   </div>
 
   <!-- ===== ERROR BANNER ===== -->
@@ -128,7 +254,11 @@
   <section id="results-section" class="results-section hidden">
     <div class="container">
 
-      <!-- Results header -->
+      <div class="section-label">
+        <span class="section-num">02</span>
+        <span>Results</span>
+      </div>
+
       <div class="results-header">
         <div>
           <h2 id="results-title" class="results-title">Results</h2>
@@ -146,18 +276,31 @@
         </div>
       </div>
 
-      <!-- Stat cards -->
       <div class="stats-grid">
         <div class="stat-card" id="sc-strategy">
+          <div class="stat-icon strategy-icon">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+              <polyline points="17 6 23 6 23 12"></polyline>
+            </svg>
+          </div>
           <p class="stat-label">Strategy Final Value</p>
           <p class="stat-value" id="stat-strategy-final">—</p>
           <p class="stat-delta" id="stat-strategy-return">—</p>
         </div>
+
         <div class="stat-card" id="sc-bh">
+          <div class="stat-icon bh-icon">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="7" width="20" height="14" rx="2"></rect>
+              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+            </svg>
+          </div>
           <p class="stat-label">Buy &amp; Hold Final Value</p>
           <p class="stat-value" id="stat-bh-final">—</p>
           <p class="stat-delta" id="stat-bh-return">—</p>
         </div>
+
         <div class="stat-card stat-card-split" id="sc-dd">
           <p class="stat-label">Max Drawdown</p>
           <div class="stat-split-row">
@@ -172,6 +315,7 @@
             </div>
           </div>
         </div>
+
         <div class="stat-card stat-card-split" id="sc-sharpe">
           <p class="stat-label">Sharpe Ratio</p>
           <div class="stat-split-row">
@@ -188,18 +332,17 @@
         </div>
       </div>
 
-      <!-- Portfolio performance chart -->
       <div class="chart-card chart-lg">
         <div class="chart-header">
           <div>
             <h3>Portfolio Performance</h3>
             <p class="chart-sub">Dollar value of $<span id="chart-capital">10,000</span> invested over time</p>
           </div>
+          <span class="chart-pill">Primary</span>
         </div>
         <div id="chart-portfolio" class="chart-area"></div>
       </div>
 
-      <!-- Row: Price + SMAs  |  Drawdown -->
       <div class="charts-row-2">
         <div class="chart-card">
           <div class="chart-header">
@@ -217,7 +360,6 @@
         </div>
       </div>
 
-      <!-- Row: Max DD bar  |  Sharpe bar -->
       <div class="charts-row-2">
         <div class="chart-card">
           <div class="chart-header">
@@ -235,8 +377,13 @@
         </div>
       </div>
 
-      <!-- Optimize CTA -->
       <div class="optimize-banner">
+        <div class="optimize-icon-wrap">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </div>
         <div class="optimize-text">
           <h3>Parameter Optimization</h3>
           <p>Scan every combination of Fast MA (10–55 days) and Slow MA (50–190 days) to find the highest Sharpe Ratio for this ticker and period.</p>
@@ -256,6 +403,12 @@
   <!-- ===== HEATMAP SECTION ===== -->
   <section id="heatmap-section" class="heatmap-section hidden">
     <div class="container">
+
+      <div class="section-label">
+        <span class="section-num">03</span>
+        <span>Optimization</span>
+      </div>
+
       <div class="chart-card chart-lg">
         <div class="chart-header">
           <div>
@@ -265,6 +418,7 @@
         </div>
         <div id="chart-heatmap" class="chart-area chart-area-heatmap"></div>
       </div>
+
       <div id="optimal-banner" class="optimal-banner hidden">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18" style="flex-shrink:0;color:var(--gold)">
           <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
@@ -277,9 +431,18 @@
 
   <!-- ===== FOOTER ===== -->
   <footer class="footer">
-    <p>Built with Python, Flask &amp; Plotly &middot; Data from Yahoo Finance</p>
-    <p class="footer-built">Built by Abdullah Sultan</p>
-    <p class="footer-note">For educational purposes only &middot; Not financial advice</p>
+    <div class="footer-inner container">
+      <div class="footer-brand">
+        <span class="t-green">Quant</span><span class="t-red">Backtester</span><span class="t-white">Py</span>
+      </div>
+      <div class="footer-center">
+        <span>Python · Flask · Plotly · Yahoo Finance</span>
+      </div>
+      <div class="footer-right">
+        <p>Built by <span class="t-green">Abdullah Sultan</span></p>
+        <p class="footer-note">For educational purposes only · Not financial advice</p>
+      </div>
+    </div>
   </footer>
 
   <script src="/static/script.js"></script>

@@ -680,3 +680,20 @@ function showError(msg) {
 function hideError() {
   document.getElementById("error-banner").classList.add("hidden");
 }
+
+
+// ================================================================
+// SCROLL REVEAL
+// ================================================================
+(function initScrollReveal() {
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add("is-visible");
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12 });
+
+  document.querySelectorAll(".fade-up").forEach(el => io.observe(el));
+})();
